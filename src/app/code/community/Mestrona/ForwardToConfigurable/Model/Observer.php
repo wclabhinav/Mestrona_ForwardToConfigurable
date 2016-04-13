@@ -51,6 +51,27 @@ class Mestrona_ForwardToConfigurable_Model_Observer extends Mage_Core_Model_Abst
      */
     public function forwardToConfigurable($observer)
     {
+		//If you have some skus (even disabled) with same url keys imported, this would not work for those skus. Fix is 
+		$product = Mage::getModel('catalog/product')->load($productId);
+		$status = $product->getStatus();
+	
+		if($status == 2)
+		{
+			$url = $product->getUrlKey();
+			$product1 = Mage::getModel('catalog/product')
+				->getCollection()
+				->addAttributeToSelect('id')
+				->addAttributeToFilter('url_key', $url)
+				->addAttributeToFilter('status',
+					array('eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED)
+				);
+			$lodedPData = $product1->getData();
+			$productId = $lodedPData['0']['entity_id'];
+				
+		}
+		
+		//Fix Ends. Use this if you have duplicate urls imported
+		
         $controller = $observer->getControllerAction();
         $productId = (int)$controller->getRequest()->getParam('id');
 
